@@ -3,7 +3,7 @@
 Contains a class BasicCache, that inherits from BaseCaching
 """
 
-BaseCaching = __import__('BaseClass').BaseCaching
+BaseCaching = __import__('base_caching').BaseCaching
 
 
 class BasicCache(BaseCaching):
