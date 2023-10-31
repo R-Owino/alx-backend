@@ -20,8 +20,14 @@ msgstr ""
 
 # correct value for each message ID for English language
 msgid "home_title"
-msgstr "Welcome to Holberton"
+msgstr ""Welcome to Holberton""
 
 msgid "home_header"
 msgstr "Hello world!"
 
+# display a welcome message otherwise display a default message
+msgid "logged_in_as"
+msgstr "You are logged in as %(username)s."
+
+msgid "not_logged_in"
+msgstr "You are not logged in."
