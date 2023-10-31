@@ -4,7 +4,7 @@ Simple flask app that serves a template
 '''
 
 from flask import Flask, render_template, request
-from flask_babel import Babel
+from flask_babel import _,  Babel
 app = Flask(__name__)
 babel = Babel(app)
 
@@ -20,6 +20,8 @@ class Config(object):
 @app.route('/', strict_slashes=False)
 def index() -> str:
     ''' Returns a string '''
+    home_title = _("home_title")
+    home_header = _("home_header")
     return render_template('4-index.html')
 
 
@@ -29,10 +31,8 @@ def get_locale() -> str:
     Checks URL for locale parameter, and forces the Locale of the app
     '''
     # check if locale parameter is in the URL
-    if 'locale' in request.args:
-        selected_locale = request.args['locale']
-        if selected_locale in app.config['LANGUAGES']:
-            return selected_locale
+    if request.args.get('locale'):
+        return request.args.get('locale')
 
     # otherwise return the best match with our supported languages
     return request.accept_languages.best_match(app.config['LANGUAGES'])
