@@ -20,7 +20,7 @@ class Config(object):
 @app.route('/', strict_slashes=False)
 def index() -> str:
     ''' Returns a string '''
-    return render_template('2-index.html')
+    return render_template('3-index.html')
 
 
 @babel.localeselector
