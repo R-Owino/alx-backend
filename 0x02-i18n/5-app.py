@@ -30,6 +30,7 @@ def index() -> str:
     ''' Returns a string '''
     return render_template('5-index.html')
 
+
 @babel.localeselector
 def get_locale() -> str:
     '''
