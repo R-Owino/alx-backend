@@ -31,10 +31,10 @@ def get_locale() -> str:
     '''
     # Check if the 'locale' parameter is in the request and
     # is a supported locale
-    if request.args.get('locale'):
-        language = request.args.get('locale')
-        if language in app.config['LANGUAGES']:
-            return language
+    if ('locale' in request.args and
+       request.args['locale'] in app.config['LANGUAGES']):
+
+        return request.args['locale']
 
     # else gets the best-matching language from request.accept_languages
     return request.accept_languages.best_match(app.config['LANGUAGES'])
