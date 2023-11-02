@@ -20,7 +20,7 @@ msgstr ""
 
 # correct value for each message ID for English language
 msgid "home_title"
-msgstr ""Welcome to Holberton""
+msgstr "Welcome to Holberton"
 
 msgid "home_header"
 msgstr "Hello world!"
