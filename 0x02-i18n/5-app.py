@@ -25,40 +25,38 @@ class Config(object):
     BABEL_DEFAULT_TIMEZONE = "UTC"
 
 
+@app.route('/', strict_slashes=False)
+def index() -> str:
+    ''' Returns a string '''
+    return render_template('5-index.html')
+
 @babel.localeselector
 def get_locale() -> str:
     '''
     Checks URL for locale parameter, and forces the Locale of the app
     '''
-    # Check if the 'locale' parameter is in the request and
-    # is a supported locale
-    if request_locale in Config.LANGUAGES:
-        return request_locale
+    # check if locale parameter is in the URL
+    if request.args.get('locale'):
+        return request.args.get('locale')
 
-    # else gets the best-matching language from request.accept_languages
+    # otherwise return the best match with our supported languages
     return request.accept_languages.best_match(app.config['LANGUAGES'])
 
 
 def get_user():
     ''' Returns a user dictionary or None if the ID cannot be found '''
-    request_user = request.args.get('login_as')
-
-    if request_user:
-        return users.get(int(request_user))
-    return None
+    try:
+        return users.get(int(request.args.get('login_as')))
+    except Exception:
+        return None
 
 
 @app.before_request
 def before_request():
     ''' Finds a user if any, and set it as a global on flask.g.user '''
     user = get_user()
-    g.user = user
-
-
-@app.route('/', strict_slashes=False)
-def index() -> str:
-    ''' Returns a string '''
-    return render_template('5-index.html')
+    if user:
+        g.user = user
 
 
 if __name__ == "__main__":
