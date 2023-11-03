@@ -25,6 +25,21 @@ users = {
 }
 
 
+def get_user() -> Union[Dict, None]:
+    ''' Returns a user dictionary or None if the ID cannot be found '''
+    login_id = request.args.get('login_as', '')
+    if login_id:
+        return users.get(int(login_id), None)
+    return None
+
+
+@app.before_request
+def before_request() -> None:
+    ''' Finds a user if any, and set it as a global on flask.g.user '''
+    user = get_user()
+    g.user = user
+
+
 @babel.localeselector
 def get_locale() -> str:
     '''
@@ -42,22 +57,6 @@ def get_locale() -> str:
 
     # otherwise return the best match with our supported languages
     return request.accept_languages.best_match(app.config['LANGUAGES'])
-
-
-def get_user() -> Union[Dict, None]:
-    ''' Returns a user dictionary or None if the ID cannot be found '''
-    try:
-        return users.get(int(request.args.get('login_as')))
-    except Exception:
-        return None
-
-
-@app.before_request
-def before_request() -> None:
-    ''' Finds a user if any, and set it as a global on flask.g.user '''
-    user = get_user()
-    if user:
-        g.user = user
 
 
 @app.route('/')
