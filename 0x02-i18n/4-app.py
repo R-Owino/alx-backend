@@ -23,14 +23,19 @@ babel = Babel(app)
 
 @babel.localeselector
 def get_locale() -> str:
-    '''  '''
+    ''' Gets specified locale for the web app '''
     # Check if 'locale' parameter is in the request and is a supported locale
-    local_query = request.query_string.decode('utf-8').split('&')
-    query_table = dict(map(lambda x: (x.split('=')[0], x.split('=')[1]),
-                           local_query))
-    if 'locale' in query_table.keys():
-        if query_table['locale'] in app.config['LANGUAGES']:
-            return query_table['locale']
+    query_string = request.query_string.decode('utf-8')
+    query_table = {
+            key: value
+            for key, value in (
+                param.split('=') if '=' in param else (param, '')
+                for param in query_string.split('&')
+            )
+        }
+    if ('locale' in query_table and
+       query_table['locale'] in app.config["LANGUAGES"]):
+        return query_table['locale']
 
     # else get the best-matching language from request.accept_languages
     return request.accept_languages.best_match(app.config["LANGUAGES"])
