@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
 '''
-Simple flask app that serves a template
+A simple flask app that serves a template
 '''
-
-from flask import Flask, render_template, request, g
 from flask_babel import Babel
+from flask import Flask, render_template, request, g
+
+
+class Config:
+    '''
+    config class for babel
+    '''
+    LANGUAGES = ["en", "fr"]
+    BABEL_DEFAULT_LOCALE = "en"
+    BABEL_DEFAULT_TIMEZONE = "UTC"
+
 
 app = Flask(__name__)
+app.config.from_object(Config)
+app.url_map.strict_slashes = False
 babel = Babel(app)
-
 users = {
     1: {"name": "Balou", "locale": "fr", "timezone": "Europe/Paris"},
     2: {"name": "Beyonce", "locale": "en", "timezone": "US/Central"},
@@ -17,34 +27,7 @@ users = {
 }
 
 
-# config class with languages attribute
-class Config(object):
-    ''' config class for babel '''
-    LANGUAGES = ["en", "fr"]
-    BABEL_DEFAULT_LOCALE = "en"
-    BABEL_DEFAULT_TIMEZONE = "UTC"
-
-
-@app.route('/', strict_slashes=False)
-def index() -> str:
-    ''' Returns a string '''
-    return render_template('5-index.html')
-
-
-@babel.localeselector
-def get_locale() -> str:
-    '''
-    Checks URL for locale parameter, and forces the Locale of the app
-    '''
-    # check if locale parameter is in the URL
-    if request.args.get('locale'):
-        return request.args.get('locale')
-
-    # otherwise return the best match with our supported languages
-    return request.accept_languages.best_match(app.config['LANGUAGES'])
-
-
-def get_user():
+def get_user() -> Union[Dict, None]:
     ''' Returns a user dictionary or None if the ID cannot be found '''
     try:
         return users.get(int(request.args.get('login_as')))
@@ -60,6 +43,33 @@ def before_request():
         g.user = user
 
 
-if __name__ == "__main__":
-    app.config.from_object(Config)
-    app.run(host="localhost", port=5000, debug=True)
+@babel.localeselector
+def get_locale() -> str:
+    ''' Gets specified locale for the web app '''
+    # Check if 'locale' parameter is in the request and is a supported locale
+    query_string = request.query_string.decode('utf-8')
+    query_table = {
+            key: value
+            for key, value in (
+                param.split('=') if '=' in param else (param, '')
+                for param in query_string.split('&')
+            )
+        }
+    if ('locale' in query_table and
+       query_table['locale'] in app.config["LANGUAGES"]):
+        return query_table['locale']
+
+    # else get the best-matching language from request.accept_languages
+    return request.accept_languages.best_match(app.config["LANGUAGES"])
+
+
+@app.route('/')
+def get_index() -> str:
+    '''
+    Returns a string
+    '''
+    return render_template('4-index.html')
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
