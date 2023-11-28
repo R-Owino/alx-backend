@@ -1,4 +1,4 @@
-## i18n
+## il8n
 - Internationalization - it makes a web app friendly to non-English speaking population
 
 This project's learning goals are:
