@@ -60,13 +60,13 @@ jobs.forEach(function (job) {
   });
 
   // handle job events
-  jobCreated.on('enqueue', function (id, type) {
+  jobCreated.on('enqueue', () => {
     console.log(`Notification job created: ${jobCreated.id}`);
-  }).on('complete', function (result) {
+  }).on('complete', (result) => {
     console.log(`Notification job #${jobCreated.id} completed`);
-  }).on('failed', function (errorMessage) {
+  }).on('failed', (errorMessage) => {
     console.log(`Notification job #${jobCreated.id} failed: ${errorMessage}`);
-  }).on('progress', function (progress, data) {
+  }).on('progress', (progress) => {
     console.log(`Notification job #${jobCreated.id} ${progress}% complete`);
   });
 });
