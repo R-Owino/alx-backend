@@ -52,19 +52,21 @@ const jobs = [
   }
 ];
 
-jobs.forEach((job) => {
-  const jobData = {
-    phoneNumber: job.phoneNumber,
-    message: job.message
-  };
-
-  const jobQueue = queue.create('push_notification_code_2', jobData).save((err) => {
-    if (!err) console.log(`Notification job created: ${jobQueue.id}`);
+// iterate thru jobs array
+jobs.forEach(function (job) {
+  // create a job
+  const jobCreated = queue.create('push_notification_code_2', job).save((err) => {
+    if (!err) console.log(`Notification job created: ${jobCreated.id}`);
   });
 
-  jobQueue.on('complete', () => console.log(`Notification job ${jobQueue.id} completed`));
-
-  jobQueue.on('failed', (err) => console.log(`Notification job ${jobQueue.id} failed: ${err}`));
-
-  jobQueue.on('progress', (progress) => console.log(`Notification job ${jobQueue.id} ${progress}% complete`));
+  // handle job events
+  jobCreated.on('enqueue', function (id, type) {
+    console.log(`Notification job created: ${jobCreated.id}`);
+  }).on('complete', function (result) {
+    console.log(`Notification job #${jobCreated.id} completed`);
+  }).on('failed', function (errorMessage) {
+    console.log(`Notification job #${jobCreated.id} failed: ${errorMessage}`);
+  }).on('progress', function (progress, data) {
+    console.log(`Notification job #${jobCreated.id} ${progress}% complete`);
+  });
 });
