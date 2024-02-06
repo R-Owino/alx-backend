@@ -1,4 +1,4 @@
-/* Script that connect to the redis server running locally 
+/* Script that connect to the redis server running locally
  * use 'import' to import the redis module
 */
 
