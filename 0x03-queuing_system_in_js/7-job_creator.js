@@ -1,5 +1,10 @@
 /* Create a queue with Kue
- * Loop thru the array of jobs
+ * Loop thru the array of jobs and does the following for each object:
+  * Create a new job to the queue push_notification_code_2 with the current object
+  * Log to the console `Notification job created: JOB_ID` on no error
+  * Log to the console `Notification job JOB_ID completed` on job completion
+  * Log to the console `Notification job JOB_ID failed: ERROR_MESSAGE` on job failure
+  * Log to the console `Notification job JOB_ID ${progress}% complete` on job progress
  */
 
 import kue from 'kue';
