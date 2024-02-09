@@ -1,76 +1,81 @@
 import redis from 'redis';
 import { promisify } from 'util';
 
-// 1. create an array listProducts
-const listProducts = [
-  { id: 1, name: 'Suitcase 250', price: 50, stock: 4 },
-  { id: 2, name: 'Suitcase 450', price: 100, stock: 10 },
-  { id: 3, name: 'Suitcase 650', price: 350, stock: 2 },
-  { id: 4, name: 'Suitcase 1050', price: 550, stock: 5 }
-];
-
-// 2. create a function getItemByID
-function getItemByID (id) {
-  const item = listProducts.find(item => item.id === id);
-  return item;
-}
-
-// 3. create express server listening on port 1245
+// create express server listening on port 1245
 const express = require('express');
 const app = express();
 const port = 1245;
 
-// 4. create a route GET /list_products
-app.get('/list_products', (req, res) => {
-  res.send(listProducts);
-});
-
-// 5. create a redis client to connect to the server
+// create a redis client to connect to the server
 const client = redis.createClient();
 
-// promisify the redis client get/set methods
-const getAsync = promisify(client.get).bind(client);
-const setAsync = promisify(client.set).bind(client);
+// create an array listProducts
+const listProducts = [
+  { itemId: 1, name: 'Suitcase 250', price: 50, stock: 4 },
+  { itemId: 2, name: 'Suitcase 450', price: 100, stock: 10 },
+  { itemId: 3, name: 'Suitcase 650', price: 350, stock: 2 },
+  { itemId: 4, name: 'Suitcase 1050', price: 550, stock: 5 }
+];
+
+// create a function getItemByID
+function getItemById(id) {
+  return listProducts.filter((product) => product.itemId == id)[0];
+}
+
+// create a route GET /list_products
+app.get('/list_products', (req, res) => {
+  res.json(listProducts);
+});
 
 // create a function reserveStockById
-function reserveStockById (id, stock) {
-  return setAsync(`item.${id}`, stock);
+async function reserveStockById(itemId, stock) {
+  const setAsync = promisify(client.set).bind(client);
+  await setAsync(`item.${itemId}`, stock);
 }
 
 // create a function getCurrentReservedStockById
-async function getCurrentReservedStockById (id) {
-  const stock = await getAsync(`item.${id}`);
+async function getCurrentReservedStockById(itemId) {
+  const getAsync = promisify(client.get).bind(client);
+  const stock = await getAsync(`item.${itemId}`);
   return stock;
 }
 
-// 6. create a route GET /list_products/:itemId
+// create a route GET /list_products/:itemId
 app.get('/list_products/:itemId', async (req, res) => {
-  const itemId = req.params.itemId;
-  const item = getItemByID(itemId);
-  const currentReservedStock = await getCurrentReservedStockById(itemId);
-  if (item) {
-    item.reservedStock = currentReservedStock;
-    res.send(item);
-  } else {
-    res.status(404).send({ status: 'Product not found' });
+  const itemId = parseInt(req.params.itemId, 10);
+  const product = getItemById(itemId);
+
+  if (!product) {
+    res.json({ status: 'Product not found' });
+    return;
   }
+
+  const currentStock = await getCurrentReservedStockById(itemId);
+  if (currentStock === null) {
+    await reserveStockById(itemId, product.stock);
+    product.currentQuantity = product.stock;
+  } else product.currentQuantity = currentStock;
+  res.json(product);
 });
 
-// 7. create a route GET /reserve_product/:itemId
+// create a route GET /reserve_product/:itemId
 app.get('/reserve_product/:itemId', async (req, res) => {
-  const itemId = req.params.itemId;
-  const item = getItemByID(itemId);
-  const currentReservedStock = await getCurrentReservedStockById(itemId);
-  if (item) {
-    if (item.stock > currentReservedStock) {
-      reserveStockById(itemId, Number(currentReservedStock) + 1);
-      res.send({ status: 'Reserved' });
-    } else {
-      res.send({ status: 'Not enough stock available' });
-    }
-  } else {
-    res.status(404).send({ status: 'Product not found' });
+  const itemId = parseInt(req.params.itemId, 10);
+  const product = getItemById(itemId)
+
+  if (!product) {
+    res.json({ status: 'Product not found' });
+    return;
   }
+
+  const  currentStock = await getCurrentReservedStockById(itemId);
+  if (currentStock === null) {
+    await reserveStockById(itemId, product.initialAvailableQuantity - 1);
+    res.json({ status: 'Reservation confirmed', itemId });
+  } else if (currentStock > 0) {
+    await reserveStockById(itemId, currentStock - 1);
+    res.json({ status: 'Reservation confirmed', itemId });
+  } else res.json({ status: 'Not enough stock available', itemId })
 });
 
 app.listen(port, () => {
